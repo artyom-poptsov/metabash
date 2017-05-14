@@ -1,0 +1,106 @@
+#!/usr/bin/guile \
+-e main
+!#
+
+;; Copyright (C) 2017 Artyom V. Poptsov <poptsov.artyom@gmail.com>
+;;
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; The program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with the program.  If not, see <http://www.gnu.org/licenses/>.
+
+(add-to-load-path ".")
+
+(use-modules (ice-9 getopt-long)
+             (ice-9 popen)
+             (ice-9 rdelim)
+             (ssh session)
+             (ssh popen)
+             (metabash)
+             (common))
+
+
+;;;
+
+(define* (supervise session
+                    #:key
+                    application-url
+                    fixup-command
+                    fixup-command-args)
+  "Check the your service by accessing it by executing a COMMAND from
+a remote host described by a SESSION."
+  (format-debug "reverse-check: fixup command: ~a ~a"
+                fixup-command
+                fixup-command-args)
+
+  (unless (local-command-available? fixup-command)
+    (error "Command is not avaiable on the local host"
+           fixup-command))
+
+  (if (not (application-available? session application-url))
+      (let ((fixup-command (string-append fixup-command
+                                          " "
+                                          fixup-command-args)))
+        (write-line (read-line (open-input-pipe fixup-command))))))
+
+;;;
+
+(define (read-config file)
+  (let ((p (open-input-file file)))
+    (read p)))
+
+
+;;;
+
+(define %option-spec
+  '((host          (value #t) (required? #f))
+    (port          (value #t) (required? #f))
+    (user          (value #t) (required? #f))
+    (identity-file (value #t) (required? #f))
+    (help (value #f))))
+
+
+;;; Entry point.
+
+(define (main args)
+  "Entry point."
+  (let ((config (cadr (read-config "config.scm"))))
+    (let* ((options       (getopt-long args %option-spec))
+           (host          (option-ref options 'host
+                                      (assoc-ref config 'host)))
+           (port          (option-ref options 'port
+                                      (assoc-ref config 'port)))
+           (user          (option-ref options 'user
+                                      (assoc-ref config 'user)))
+           (identity-file (option-ref options 'identity-file
+                                      (assoc-ref config 'identity-file)))
+           (session (make-session #:host host
+                                  #:user user
+                                  #:port (string->number port)
+                                  #:identity identity-file)))
+    (format-debug "identity-file: ~a" identity-file)
+    (if (host-accessible? host)
+        (begin
+          (establish-session! session)
+          (supervise session
+                     #:application-url
+                     (assoc-ref config 'application-url)
+                     #:fixup-command
+                     (assoc-ref config 'fixup-command)
+                     #:fixup-command-args
+                     (assoc-ref config 'fixup-command-args)))
+        (error "Remote host is not accessible" host)))))
+
+;; Local variables:
+;; mode: Scheme
+;; End:
+
+;;; whale ends here.

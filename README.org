@@ -1,0 +1,14 @@
+* Supervisor configuration file
+  Configuration should be placed in =config.scm= file.
+
+  Configuration example:
+
+#+BEGIN_EXAMPLE scheme
+'((host . "example.org")
+  (user . "avp")
+  (port . "2222")
+  (identity-file . "~/.ssh/id_rsa")
+  (application-url . "https://my-site.example.com/index.html")
+  (fixup-command . "echo")
+  (fixup-command-args . "$(date): Service is down :-/ >> /tmp/log.txt"))
+#+END_EXAMPLE
