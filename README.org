@@ -38,9 +38,9 @@ $ make install
 
 (let* ((pipeline (plumb
                    ;; This commands runs on a remote host
-                   (list session "cat /etc/hosts")
+                   `(remote ,session "cat /etc/hosts")
                    ;; This commands runs on the local host
-                   (list #f "sort")))
+                   `(local "sort")))
        ;; Plumber will connect output of the 1st (remote) command
        ;; with the input of the 2nd (local) command with a pipe.
        ;; The list of commands passed to the plumber can be arbitrary

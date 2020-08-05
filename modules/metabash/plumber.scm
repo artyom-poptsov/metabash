@@ -47,22 +47,37 @@
 
 (define (plumb . spec)
   "Make a pipeline using the SPEC."
-  (let loop ((commands  spec)
+  (let loop ((sp        spec)
              (pipes     '())
              (processes '()))
-      (if (not (null? commands))
-          (let* ((cmd       (car commands))
-                 (host      (car cmd))
-                 (proc      (make-process host (cadr cmd)))
-                 (last-proc (last processes)))
-            (loop (cdr commands)
-                  (if last-proc
-                      (append-1 pipes
-                                (make-pipe (process-output-port last-proc)
-                                           (process-input-port  proc)))
-                      pipes)
-                  (append-1 processes proc)))
-          (make-pipeline pipes processes))))
+    (if (not (null? sp))
+        (let* ((command   (car sp))
+               (type      (car command))
+               (last-proc (last processes)))
+          (case type
+            ((local)
+             (let ((proc (make-process #f (cadr command))))
+               (loop (cdr sp)
+                     (if last-proc
+                         (append-1 pipes
+                                   (make-pipe
+                                    (process-output-port last-proc)
+                                    (process-input-port  proc)))
+                         pipes)
+                     (append-1 processes proc))))
+            ((remote)
+             (let* ((host (cadr  command))
+                    (cmd  (caddr command))
+                    (proc (make-process host cmd)))
+               (loop (cdr sp)
+                     (if last-proc
+                         (append-1 pipes
+                                   (make-pipe
+                                    (process-output-port last-proc)
+                                    (process-input-port  proc)))
+                         pipes)
+                     (append-1 processes proc))))))
+        (make-pipeline pipes processes))))
 
 ;;; plumber.scm ends here.
 
