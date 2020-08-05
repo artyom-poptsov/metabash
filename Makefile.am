@@ -18,7 +18,7 @@
 
 ACLOCAL_AMFLAGS = -I build-aux
 
-SUBDIRS = am build-aux tests doc m4 modules utils
+SUBDIRS = am build-aux doc m4 modules
 
 gen-ChangeLog:
 	if test -d .git; then				\

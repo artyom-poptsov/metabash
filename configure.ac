@@ -54,8 +54,9 @@ if test "x$guilesitedir" = "x"; then
 fi
 AC_SUBST([guilesitedir])
 
-AC_CONFIG_FILES([Makefile am/Makefile build-aux/Makefile tests/Makefile])
-AC_CONFIG_FILES([doc/Makefile m4/Makefile modules/Makefile modules/dsv/Makefile])
+AC_CONFIG_FILES([Makefile am/Makefile])
+AC_CONFIG_FILES([build-aux/Makefile m4/Makefile])
+AC_CONFIG_FILES([modules/metabash/Makefile])
 
 dnl texinfo package required to make the documentation in Texinfo format.
 AC_CHECK_PROG(MAKEINFO_CHECK, makeinfo, yes)
