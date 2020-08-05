@@ -66,8 +66,8 @@
 (define (plumb . spec)
   "Make a pipeline using the SPEC."
   (let loop ((sp        spec)
-             (pipes     '())
-             (processes '()))
+             (processes '())
+             (pipes     '()))
     (if (not (null? sp))
         (let* ((command (car sp))
                (type    (car command)))
