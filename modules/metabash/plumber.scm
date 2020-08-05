@@ -29,6 +29,14 @@
   (pipes     pipeline-pipes)
   (processes pipeline-processes))
 
+(set-record-type-printer!
+ <pipeline>
+ (lambda (pipeline port)
+   (format port "#<pipeline processes: ~a pipes: ~a ~a>"
+           (length (pipeline-processes pipeline))
+           (length (pipeline-pipes     pipeline))
+           (number->string (object-address pipe) 16))))
+
 (define (pipeline-input-port pipeline)
   (process-input-port (car (pipeline-processes pipeline))))
 
