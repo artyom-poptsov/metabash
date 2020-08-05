@@ -12,6 +12,13 @@ GNU Guile module for running distributed shell pipelines.
    - GNU Guile 2.2+
    - Guile-SSH 0.13.0+
 
+** Installation
+#+BEGIN_EXAMPLE shell
+$ autoreconf -vif
+$ ./configure
+$ make install
+#+END_EXAMPLE
+
 ** Example
 #+BEGIN_EXAMPLE lisp
 (use-modules (ssh session)
