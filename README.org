@@ -38,9 +38,18 @@ $ make install
 
 (let* ((pipeline (plumb
                    ;; This commands runs on a remote host
-                   `(remote ,session "cat /etc/hosts")
+                   `(remote ,session "cat /etc/passwd")
                    ;; This commands runs on the local host
-                   `(local "sort")))
+                   `(local "sort")
+                   ;; This command runs on the local host as well,
+                   ;; but this time it's a Guile process
+                   `(guile #f
+                            (begin
+                              (use-modules (ice-9 rdelim))
+                              (let loop ((line (read-line)))
+                                (unless (eof-object? line)
+                                  (write-line (string-join (string-split line #\:) ","))
+                                  (loop (read-line))))))))
        ;; Plumber will connect output of the 1st (remote) command
        ;; with the input of the 2nd (local) command with a pipe.
        ;; The list of commands passed to the plumber can be arbitrary
