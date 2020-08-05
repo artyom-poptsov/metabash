@@ -1,8 +1,12 @@
 (define-module (metabash plumber)
   #:use-module (metabash pipe)
   #:use-module (metabash process)
+  #:use-module (ssh dist node)
   #:use-module (srfi srfi-9 gnu)
   #:use-module (srfi srfi-11)
+  #:use-module (ice-9 rdelim)
+  #:use-module (ice-9 binary-ports)
+  #:use-module (ice-9 textual-ports)
   #:export (<pipeline>
             pipeline?
             pipeline-pipes
@@ -54,6 +58,16 @@
         (cmd  (caddr command)))
     (make-process host cmd)))
 
+(define (run-guile command)
+  (let* ((host (cadr command))
+         (proc (make-process host "sh -c guile -q --")))
+    (write-line ",option prompt \"\"" (process-input-port proc))
+    (rrepl-skip-to-prompt (process-output-port proc))
+    (write (caddr command) (process-input-port proc))
+    (newline (process-input-port proc))
+    (force-output (process-input-port proc))
+    proc))
+
 (define (append-process process-list pipe-list process)
   (let ((last-proc (last process-list)))
     (if last-proc
@@ -79,6 +93,10 @@
             ((remote)
              (let-values (((process-list pipe-list)
                           (append-process processes pipes (run-remote command))))
+               (loop (cdr sp) process-list pipe-list)))
+            ((guile)
+             (let-values (((process-list pipe-list)
+                           (append-process processes pipes (run-guile command))))
                (loop (cdr sp) process-list pipe-list)))))
         (make-pipeline pipes processes))))
 
