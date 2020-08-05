@@ -1,0 +1,48 @@
+* Metabash
+GNU Guile module for running distributed shell pipelines.
+
+** License
+   Metabash is free software: you can redistribute it and/or modify it under the
+   terms of the GNU General Public License as published by the Free Software
+   Foundation, either version 3 of the License, or (at your option) any later
+   version. Please see =COPYING= file for the terms of GNU General Public
+   License.
+
+** Requirements
+   - GNU Guile 2.2+
+   - Guile-SSH 0.13.0+
+
+** Example
+#+BEGIN_EXAMPLE lisp
+(use-modules (ssh session)
+             (ssh auth)
+             (metabash pipe)
+             (metabash process)
+             (metabash plumber))
+
+;; Create a Guile-SSH session:
+(define session (make-session #:host "example.org"))
+
+;; Connect to the remote host:
+(connect! session)
+
+;; Authenticate with the host using the SSH Agent:
+(userauth-agent! session)
+
+(let* ((pipeline (plumb
+                   ;; This commands runs on a remote host
+                   (list session "cat /etc/hosts")
+                   ;; This commands runs on the local host
+                   (list #f "sort")))
+       ;; Plumber will connect output of the 1st (remote) command
+       ;; with the input of the 2nd (local) command with a pipe.
+       ;; The list of commands passed to the plumber can be arbitrary
+       ;; long.
+       ;;
+       ;; To read data from the pipeline, we connect the pipeline output
+       ;; with the current output port:
+       (pipe     (make-pipe (pipeline-output-port pipeline)
+                            (current-output-port))))
+  (while #t
+    (sleep 1)))
+#+END_EXAMPLE
