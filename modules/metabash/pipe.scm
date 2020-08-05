@@ -56,16 +56,19 @@
 
 (define (make-pipe input-port output-port)
   "Make a new pipe that connects INPUT-PORT and OUTPUT-PORT."
+  (when (or (port-closed? input-port) (port-closed? output-port))
+    (error "One of the ports is closed." input-port output-port))
   (%make-pipe
    (begin-thread
     (let loop ((data (get-bytevector-some input-port)))
-      (if (eof-object? data)
-          (begin
-            (close input-port)
-            (close output-port))
-          (begin
-            (put-bytevector output-port data)
-            (loop (get-bytevector-some input-port))))))
+      (unless (or (port-closed? input-port) (port-closed? output-port))
+        (if (eof-object? data)
+            (begin
+              (close input-port)
+              (close output-port))
+            (begin
+              (put-bytevector output-port data)
+              (loop (get-bytevector-some input-port)))))))
    input-port
    output-port))
 
