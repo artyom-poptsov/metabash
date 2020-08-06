@@ -53,9 +53,11 @@ $ make install
                             (begin
                               (use-modules (ice-9 rdelim))
                               (let loop ((line (read-line)))
-                                (unless (eof-object? line)
-                                  (write-line (string-join (string-split line #\:) ","))
-                                  (loop (read-line))))))))
+                                (if (eof-object? line)
+                                  (exit)
+                                  (begin
+                                    (write-line (string-join (string-split line #\:) ","))
+                                    (loop (read-line)))))))))
        ;; Plumber will connect output of the 1st (remote) command
        ;; with the input of the 2nd (local) command with a pipe.
        ;; The list of commands passed to the plumber can be arbitrary
