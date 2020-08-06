@@ -1,6 +1,7 @@
 (define-module (metabash process)
   #:use-module (srfi srfi-9 gnu)
   #:use-module (ice-9 popen)
+  #:use-module (ice-9 rdelim)
   #:use-module (ssh popen)
   #:use-module (ssh session)
   #:use-module (ssh dist)
@@ -21,6 +22,13 @@
   (input-port  process-input-port)
   (output-port process-output-port))
 
+(define (make-remote-fifo session)
+  "Make a remote FIFO using a SSH session.  Return the FIFO name."
+  (read-line
+   (open-remote-input-pipe
+    session
+    "export NAME=$(mktemp --dry-run) &&  mkfifo ${NAME} && echo ${NAME}")))
+
 (define (make-process host command)
   (cond
    ((not host)
@@ -33,10 +41,7 @@
         (%make-process host command fifo-name
                        input-port output-port))))
    ((session? host)
-    (let* ((fifo-name (with-ssh (make-node host)
-                        (let ((name (tmpnam)))
-                          (system (string-append "mkfifo " name))
-                          name)))
+    (let* ((fifo-name   (make-remote-fifo host))
            (input-port  (open-remote-output-pipe
                          host
                          (string-append command " > " fifo-name)))
