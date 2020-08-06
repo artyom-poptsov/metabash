@@ -1,3 +1,5 @@
+[[./doc/logo.png]]
+
 * Metabash
 GNU Guile module for running distributed shell pipelines.
 
