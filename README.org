@@ -10,6 +10,10 @@ GNU Guile module for running distributed shell pipelines.
    version. Please see =COPYING= file for the terms of GNU General Public
    License.
 
+   The logo (=doc/logo.svg= and rasterised versions) is distributed
+   under terms of [[https://creativecommons.org/licenses/by-sa/4.0/][Creative Commons Attribution-ShareAlike 4.0
+   International]] license.
+
 ** Requirements
    - GNU Guile 2.2+
    - Guile-SSH 0.13.0+
