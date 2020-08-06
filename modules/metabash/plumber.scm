@@ -51,14 +51,17 @@
 
 
 (define (run-local command)
+  "Run local COMMAND."
   (make-process #f (cadr command)))
 
 (define (run-remote command)
+  "Run a remote command using Guile-SSH."
   (let ((host (cadr  command))
         (cmd  (caddr command)))
     (make-process host cmd)))
 
 (define (run-guile command)
+  "Run a GNU Guile command in a local or a remote process."
   (let* ((host (cadr command))
          (proc (make-process host "sh -c guile -q --")))
     (write-line ",option prompt \"\"" (process-input-port proc))
@@ -69,6 +72,11 @@
     proc))
 
 (define (append-process process-list pipe-list process)
+  "Append a new PROCESS to the PROCESS-LIST.  If the PROCESS-LIST is not empty,
+connect the last process from the list with the new PROCESS.
+
+Return two values: updated PROCESS-LIST with the new PROCESS and updated
+PIPE-LIST."
   (let ((last-proc (last process-list)))
     (if last-proc
         (values (append-1 process-list process)
