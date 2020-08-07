@@ -48,9 +48,8 @@ GUILE_SITE_DIR
 
 GUILE_MODULE_REQUIRED([ssh session])
 
-pkgdatadir="$datadir/$PACKAGE"
 if test "x$guilesitedir" = "x"; then
-   guilesitedir="$pkgdatadir"
+   guilesitedir="$datadir/guile/site/$GUILE_EFFECTIVE_VERSION"
 fi
 AC_SUBST([guilesitedir])
 
