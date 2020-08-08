@@ -34,7 +34,11 @@
             pipe-input-port
             pipe-output-port
             make-pipe
-            pipe-close))
+            pipe-close
+            <tee>
+            %tee
+            make-tee
+            tee-close!))
 
 (define-immutable-record-type <pipe>
   (%make-pipe thread input-port output-port)
@@ -78,5 +82,44 @@
   (close (pipe-output-port pipe))
   (cancel-thread (pipe-thread pipe))
   (join-thread (pipe-thread pipe)))
+
+
+
+(define-immutable-record-type <tee>
+  (%make-tee thread input-port 1st-output-port 2nd-output-port)
+  tee?
+  (thread          tee-thread)
+  (input-port      tee-input-port)
+  (1st-output-port tee-1st-output-port)
+  (2nd-output-port tee-2nd-output-port))
+
+(define (%tee input-port 1st-output-port 2nd-output-port)
+  "Redirect data from INPUT-PORT to 1ST-OUTPUT-PORT and 2ND-OUTPUT-PORT."
+  (let loop ((data (get-bytevector-some input-port)))
+    (unless (eof-object? data)
+      (put-bytevector 1st-output-port data)
+      (put-bytevector 2nd-output-port data)
+      (loop (get-bytevector-some input-port)))))
+
+(define (tee-close! tee)
+  "Close a specified PIPE."
+  (close (tee-input-port tee))
+  (close (tee-1st-output-port tee))
+  (close (tee-2nd-output-port tee))
+  (cancel-thread (tee-thread tee))
+  (join-thread (tee-thread tee)))
+
+(define (make-tee input-port 1st-output-port 2nd-output-port)
+  (when (or (port-closed? input-port)
+            (port-closed? 1st-output-port)
+            (port-closed? 2nd-output-port))
+    (error "One of the ports is closed."
+           input-port 1st-output-port 2nd-output-port))
+  (%make-tee
+   (begin-thread
+    (%tee input-port 1st-output-port 2nd-output-port))
+   input-port
+   1st-output-port
+   2nd-output-port))
 
 ;;; pipe.scm ends here.
