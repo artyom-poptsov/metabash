@@ -59,9 +59,8 @@
   (is-a? x <pipe>))
 
 
-
 (define-method (display (pipe <pipe>) (port <port>))
-  (format port "#<pipe =~a= in: ~a out: ~a ~a>"
+  (format port "#<pipe [~a]=~a=[~a] ~a>"
           (if (pipe-thread pipe)
               "="
               "x")
@@ -128,11 +127,15 @@
                     #:init-keyword #:side-branch-port))
 
 (define-method (display (tee <tee>) (port <port>))
-  (format port "#<tee =~a= in: ~a out: ~a ~a>"
+  (format port "#<tee [~a]=~a=[~a]=~a=[~a] ~a>"
+          (pipe-input-port  tee)
           (if (pipe-thread tee)
               "="
               "x")
-          (pipe-input-port  tee)
+          (tee-side-branch-port tee)
+          (if (pipe-thread tee)
+              "="
+              "x")
           (pipe-output-port tee)
           (number->string (object-address tee) 16)))
 
