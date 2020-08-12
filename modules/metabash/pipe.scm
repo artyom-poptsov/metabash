@@ -64,10 +64,10 @@
 
 (define-method (display (pipe <pipe>) (port <port>))
   (format port "#<pipe [~a]=~a=[~a] tx: ~a ~a>"
+          (pipe-input-port  pipe)
           (if (pipe-thread pipe)
               "="
               "x")
-          (pipe-input-port  pipe)
           (pipe-output-port pipe)
           (pipe-tx pipe)
           (number->string (object-address pipe) 16)))
