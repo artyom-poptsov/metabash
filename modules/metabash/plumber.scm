@@ -27,6 +27,7 @@
 (define-module (metabash plumber)
   #:use-module (metabash pipe)
   #:use-module (metabash process)
+  #:use-module (oop goops)
   #:use-module (ssh dist node)
   #:use-module (srfi srfi-9 gnu)
   #:use-module (srfi srfi-11)
@@ -39,7 +40,8 @@
             pipeline-processes
             pipeline-output-port
             pipeline-input-port
-            plumb))
+            plumb
+            M#!))
 
 
 ;;; Helper procedures.
@@ -105,9 +107,12 @@ Return two values: updated PROCESS-LIST with the new PROCESS and updated
 PIPE-LIST."
   (let ((last-proc (last process-list)))
     (if last-proc
-        (values (append-1 process-list process)
-                (append-1 pipe-list    (make-pipe (process-output-port last-proc)
-                                                  (process-input-port  process))))
+        (let ((pipe (make <pipe>
+                      #:input-port  (process-output-port last-proc)
+                      #:output-port (process-input-port  process))))
+          (pipe-connect! pipe)
+          (values (append-1 process-list process)
+                  (append-1 pipe-list    pipe)))
         (values (append-1 process-list process)
                 pipe-list))))
 
@@ -133,5 +138,16 @@ PIPE-LIST."
                            (append-process processes pipes (run-guile command))))
                (loop (cdr sp) process-list pipe-list)))))
         (make-pipeline pipes processes))))
+
+(define-syntax M#!
+  (syntax-rules (=>)
+    ((_ type command)
+     (list (quote type) command))
+    ((_ => type command)
+     `(,(list (quote type) command)))
+    ((_ => type command rest ...)
+     `(,(list (quote type) command) ,@(M#! rest ...)))
+    ((_ type command => rest ...)
+     (apply plumb `(,(list (quote type) command) ,@(M#! => rest ...))))))
 
 ;;; plumber.scm ends here.

@@ -25,101 +25,160 @@
 ;;; Code:
 
 (define-module (metabash pipe)
+  #:use-module (oop goops)
   #:use-module (ice-9 threads)
-  #:use-module (srfi srfi-9 gnu)
-  #:use-module (rnrs bytevectors)
   #:use-module (ice-9 binary-ports)
+  #:use-module (rnrs bytevectors)
   #:export (<pipe>
+            pipe?
             pipe-thread
             pipe-input-port
             pipe-output-port
-            make-pipe
-            pipe-close
+            pipe-connect!
+            pipe-disconnect!
+            pipe-close!
+            ;; tee
             <tee>
-            %tee
-            make-tee
-            tee-close!))
+            tee-side-branch-port))
 
-(define-immutable-record-type <pipe>
-  (%make-pipe thread input-port output-port)
-  pipe?
-  (thread      pipe-thread)
-  (input-port  pipe-input-port)
-  (output-port pipe-output-port))
+(define-class <pipe> ()
+  ;; <thread>
+  (thread      #:accessor     pipe-thread
+               #:init-value   #f)
+  ;; <port>
+  (input-port  #:accessor     pipe-input-port
+               #:init-value   #f
+               #:init-keyword #:input-port)
+  ;; <port>
+  (output-port #:accessor     pipe-output-port
+               #:init-value   #f
+               #:init-keyword #:output-port))
 
-(set-record-type-printer!
- <pipe>
- (lambda (pipe port)
-   (format port "#<pipe thread: ~a in: ~a out: ~a ~a>"
-           (pipe-thread pipe)
-           (pipe-input-port  pipe)
-           (pipe-output-port pipe)
-           (number->string (object-address pipe) 16))))
+(define (pipe? x)
+  "Check if X is a <pipe> instance."
+  (is-a? x <pipe>))
 
 
 
-(define (make-pipe input-port output-port)
-  "Make a new pipe that connects INPUT-PORT and OUTPUT-PORT."
-  (when (or (port-closed? input-port) (port-closed? output-port))
-    (error "One of the ports is closed." input-port output-port))
-  (%make-pipe
-   (begin-thread
-    (let loop ((data (get-bytevector-some input-port)))
-      (unless (or (port-closed? input-port) (port-closed? output-port))
-        (if (eof-object? data)
-            (begin
-              (close input-port)
-              (close output-port))
-            (begin
-              (put-bytevector output-port data)
-              (loop (get-bytevector-some input-port)))))))
-   input-port
-   output-port))
+(define-generic display)
+(define-generic write)
 
-(define (pipe-close! pipe)
-  "Close a specified PIPE."
+(define-method (display (pipe <pipe>) (port <port>))
+  (next-method)
+  (format port "#<pipe =~a= in: ~a out: ~a ~a>"
+          (if (pipe-thread pipe)
+              "="
+              "x")
+          (pipe-input-port  pipe)
+          (pipe-output-port pipe)
+          (number->string (object-address pipe) 16)))
+
+(define-method (write (pipe <pipe>) (port <port>))
+  (next-method)
+  (display pipe port))
+
+(define-method (display (pipe <pipe>))
+  (next-method)
+  (display pipe (current-output-port)))
+
+(define-method (write (pipe <pipe>))
+  (next-method)
+  (display pipe (current-output-port)))
+
+
+
+(define-generic pipe-connect!)
+
+;; Make a new pipe that connects INPUT-PORT and OUTPUT-PORT.
+(define-method (pipe-connect! (pipe <pipe>))
+  (let ((input-port  (pipe-input-port  pipe))
+        (output-port (pipe-output-port pipe)))
+    (when (or (port-closed? input-port)
+              (port-closed? output-port))
+      (error "One of the ports is closed." input-port output-port))
+    (slot-set! pipe 'thread
+               (begin-thread
+                (let loop ((data (get-bytevector-some input-port)))
+                  (unless (or (port-closed? input-port)
+                              (port-closed? output-port))
+                    (if (eof-object? data)
+                        (begin
+                          (close input-port)
+                          (close output-port))
+                        (begin
+                          (put-bytevector output-port data)
+                          (loop (get-bytevector-some input-port))))))))))
+
+(define-generic pipe-disconnect!)
+(define-method (pipe-disconnect! (pipe <pipe>))
+  (cancel-thread (pipe-thread pipe))
+  (join-thread (pipe-thread pipe))
+  (slot-set! pipe 'thread #f))
+
+(define-generic pipe-close!)
+
+;; Close a specified PIPE.
+(define-method (pipe-close! (pipe <pipe>))
+  (pipe-disconnect! pipe)
   (close (pipe-input-port pipe))
   (close (pipe-output-port pipe))
-  (cancel-thread (pipe-thread pipe))
-  (join-thread (pipe-thread pipe)))
+  (cancel-thread (pipe-thread pipe)))
+
+
+;;; Tee implementation.
+
+(define-class <tee> (<pipe>)
+  (side-branch-port #:accessor     tee-side-branch-port
+                    #:init-value   #f
+                    #:init-keyword #:side-branch-port))
+
+(define-method (display (tee <tee>) (port <port>))
+  (next-method)
+  (format port "#<tee =~a= in: ~a out: ~a ~a>"
+          (if (pipe-thread tee)
+              "="
+              "x")
+          (pipe-input-port  tee)
+          (pipe-output-port tee)
+          (number->string (object-address tee) 16)))
+
+(define-method (write (tee <tee>) (port <tee>))
+  (next-method)
+  (display tee port))
+
+(define-method (display (tee <tee>))
+  (next-method)
+  (display tee (current-output-port)))
+
+(define-method (write (tee <tee>))
+  (next-method)
+  (display tee (current-output-port)))
 
 
 
-(define-immutable-record-type <tee>
-  (%make-tee thread input-port 1st-output-port 2nd-output-port)
-  tee?
-  (thread          tee-thread)
-  (input-port      tee-input-port)
-  (1st-output-port tee-1st-output-port)
-  (2nd-output-port tee-2nd-output-port))
+;; Redirect data from INPUT-PORT to OUTPUT-PORT and BRANCH-OUTPUT-PORT.
+(define-method (pipe-connect! (tee <tee>))
+  (let ((input-port  (pipe-input-port tee))
+        (output-port (pipe-output-port tee))
+        (branch-port (tee-side-branch-port tee)))
+    (when (or (port-closed? input-port)
+              (port-closed? output-port)
+              (port-closed? branch-port))
+      (error "One of the ports is closed."
+             input-port output-port branch-port))
+    (slot-set! tee 'thread
+               (begin-thread
+                (let loop ((data (get-bytevector-some input-port)))
+                  (unless (eof-object? data)
+                    (put-bytevector branch-port data)
+                    (put-bytevector output-port data)
+                    (loop (get-bytevector-some input-port))))))))
 
-(define (%tee input-port 1st-output-port 2nd-output-port)
-  "Redirect data from INPUT-PORT to 1ST-OUTPUT-PORT and 2ND-OUTPUT-PORT."
-  (let loop ((data (get-bytevector-some input-port)))
-    (unless (eof-object? data)
-      (put-bytevector 1st-output-port data)
-      (put-bytevector 2nd-output-port data)
-      (loop (get-bytevector-some input-port)))))
-
-(define (tee-close! tee)
-  "Close a specified PIPE."
-  (close (tee-input-port tee))
-  (close (tee-1st-output-port tee))
-  (close (tee-2nd-output-port tee))
-  (cancel-thread (tee-thread tee))
-  (join-thread (tee-thread tee)))
-
-(define (make-tee input-port 1st-output-port 2nd-output-port)
-  (when (or (port-closed? input-port)
-            (port-closed? 1st-output-port)
-            (port-closed? 2nd-output-port))
-    (error "One of the ports is closed."
-           input-port 1st-output-port 2nd-output-port))
-  (%make-tee
-   (begin-thread
-    (%tee input-port 1st-output-port 2nd-output-port))
-   input-port
-   1st-output-port
-   2nd-output-port))
+;; Close a specified TEE."
+(define-method (pipe-close! (tee <tee>))
+  (pipe-disconnect! tee)
+  (close (pipe-input-port tee))
+  (close (tee-side-branch-port tee))
+  (close (pipe-output-port tee)))
 
 ;;; pipe.scm ends here.
