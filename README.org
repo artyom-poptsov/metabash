@@ -29,6 +29,7 @@ $ make install
 #+BEGIN_EXAMPLE lisp
 (use-modules (ssh session)
              (ssh auth)
+             (oop goops)
              (metabash pipe)
              (metabash process)
              (metabash plumber))
@@ -65,8 +66,9 @@ $ make install
        ;;
        ;; To read data from the pipeline, we connect the pipeline output
        ;; with the current output port:
-       (pipe     (make-pipe (pipeline-output-port pipeline)
-                            (current-output-port))))
+       (pipe     (make <pipe> 
+                       #:input-port (pipeline-output-port pipeline)
+                       #:output-port (current-output-port))))
   (while #t
     (sleep 1)))
 #+END_EXAMPLE
