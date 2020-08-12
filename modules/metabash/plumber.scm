@@ -94,18 +94,23 @@
 
 (define-method (run-local (command <list>))
   "Run local COMMAND."
-  (make-process #f (cadr command)))
+  (let ((proc (make <process> #:command (cadr command))))
+    (process-start! proc)
+    proc))
 
 (define-method (run-remote (command <list>))
   "Run a remote command using Guile-SSH."
-  (let ((host (cadr  command))
-        (cmd  (caddr command)))
-    (make-process host cmd)))
+  (let* ((host (cadr  command))
+         (cmd  (caddr command))
+         (proc (make <process> #:host host #:command cmd)))
+    (process-start! proc)
+    proc))
 
 (define-method (run-guile (command <list>))
   "Run a GNU Guile command in a local or a remote process."
   (let* ((host (cadr command))
-         (proc (make-process host "sh -c guile -q --")))
+         (proc (make <process> #:host host #:command "sh -c guile -q --")))
+    (process-start! proc)
     (write-line ",option prompt \"\"" (process-input-port proc))
     (rrepl-skip-to-prompt (process-output-port proc))
     (write (caddr command) (process-input-port proc))

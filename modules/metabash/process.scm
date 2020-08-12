@@ -24,28 +24,46 @@
 ;;; Code:
 
 (define-module (metabash process)
-  #:use-module (srfi srfi-9 gnu)
+  #:use-module (oop goops)
   #:use-module (ice-9 popen)
   #:use-module (ice-9 rdelim)
   #:use-module (ssh popen)
   #:use-module (ssh session)
   #:use-module (ssh dist)
   #:export (<process>
+            process?
             process-input-port
             process-output-port
             process-host
             process-command
             process-fifo-name
-            make-process))
+            process-start!
+            process-stop!
+            make-remote-fifo))
 
-(define-immutable-record-type <process>
-  (%make-process host command fifo-name input-port output-port)
-  process?
-  (host        process-host)
-  (command     process-command)
-  (fifo-name   process-fifo-name)
-  (input-port  process-input-port)
-  (output-port process-output-port))
+(define-class <process> ()
+  ;; <session> | #f
+  (host        #:accessor     process-host
+               #:init-value   #f
+               #:init-keyword #:host)
+  ;; <string>
+  (command     #:accessor     process-command
+               #:init-value   #f
+               #:init-keyword #:command)
+  ;; <string>
+  (fifo-name   #:accessor     process-fifo-name
+               #:init-value   #f)
+  ;; <port>
+  (input-port  #:accessor     process-input-port
+               #:init-value   #f)
+  ;; <port>
+  (output-port #:accessor     process-output-port
+               #:init-value   #f))
+
+(define (process? x)
+  (is-a? x <process>))
+
+
 
 (define (make-remote-fifo session)
   "Make a remote FIFO using a SSH session.  Return the FIFO name."
@@ -54,39 +72,48 @@
     session
     "export NAME=$(mktemp --dry-run) &&  mkfifo ${NAME} && echo ${NAME}")))
 
-(define (make-process host command)
-  (cond
-   ((not host)
-    (let ((fifo-name (tmpnam)))
-      (system (string-append "mkfifo " fifo-name))
-      (let ((input-port  (open-output-pipe
-                          (string-append command " > " fifo-name)))
-            (output-port (open-input-pipe
-                          (string-append "cat " fifo-name))))
-        (%make-process host command fifo-name
-                       input-port output-port))))
-   ((session? host)
-    (let* ((fifo-name   (make-remote-fifo host))
-           (input-port  (open-remote-output-pipe
-                         host
-                         (string-append command " > " fifo-name)))
-           (output-port (open-remote-input-pipe
-                         host
-                         (string-append "cat " fifo-name))))
-      (%make-process host command fifo-name
-                     input-port output-port)))
-   (else
-    (error "Wrong argument type: " host))))
+
 
-(define (process-stop! process)
-  (close (process-input-port process))
-  (close (process-output-port process))
-  (let ((host (process-host process)))
+(define-method (process-start! (proc <process>))
+  (let ((host        (process-host proc))
+        (fifo-name   (process-fifo-name proc))
+        (input-port  (process-input-port proc))
+        (output-port (process-output-port proc))
+        (command     (process-command proc)))
     (cond
      ((not host)
-      (delete-file (process-fifo-name process)))
-     ((session? (process-host process))
+      (let ((fifo-name (tmpnam)))
+        (system (string-append "mkfifo " fifo-name))
+        (let ((input-port  (open-output-pipe
+                            (string-append command " > " fifo-name)))
+              (output-port (open-input-pipe
+                            (string-append "cat " fifo-name))))
+          (slot-set! proc 'input-port  input-port)
+          (slot-set! proc 'output-port output-port)
+          (slot-set! proc 'fifo-name   fifo-name))))
+     ((session? host)
+      (let* ((fifo-name   (make-remote-fifo host))
+             (input-port  (open-remote-output-pipe
+                           host
+                           (string-append command " > " fifo-name)))
+             (output-port (open-remote-input-pipe
+                           host
+                           (string-append "cat " fifo-name))))
+        (slot-set! proc 'input-port  input-port)
+        (slot-set! proc 'output-port output-port)
+        (slot-set! proc 'fifo-name   fifo-name)))
+     (else
+      (error "Wrong argument type: " host)))))
+
+(define-method (process-stop! (proc <process>))
+  (close (process-input-port proc))
+  (close (process-output-port proc))
+  (let ((host (process-host proc)))
+    (cond
+     ((not host)
+      (delete-file (process-fifo-name proc)))
+     ((session? (process-host proc))
       (with-ssh (make-node host)
-                (delete-file (process-fifo-name process)))))))
+                (delete-file (process-fifo-name proc)))))))
 
 ;;; process.scm ends here.
