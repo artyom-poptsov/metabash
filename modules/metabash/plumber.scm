@@ -56,39 +56,53 @@
 
 
 
-(define-immutable-record-type <pipeline>
-  (make-pipeline pipes processes)
-  pipeline?
-  (pipes     pipeline-pipes)
-  (processes pipeline-processes))
+(define-class <pipeline> ()
+  (pipes     #:accessor     pipeline-pipes
+             #:init-value   '()
+             #:init-keyword #:pipes)
+  (processes #:accessor     pipeline-processes
+             #:init-value   '()
+             #:init-keyword #:processes))
 
-(set-record-type-printer!
- <pipeline>
- (lambda (pipeline port)
-   (format port "#<pipeline processes: ~a pipes: ~a ~a>"
-           (length (pipeline-processes pipeline))
-           (length (pipeline-pipes     pipeline))
-           (number->string (object-address pipe) 16))))
+(define (pipeline? x)
+  (is-a? x <pipeline>))
 
-(define (pipeline-input-port pipeline)
+(define-method (display (pipeline <pipeline>) (port <port>))
+  (format port "#<pipeline processes: ~a pipes: ~a ~a>"
+          (length (pipeline-processes pipeline))
+          (length (pipeline-pipes     pipeline))
+          (number->string (object-address pipe) 16)))
+
+(define-method (write (pipeline <pipeline>) (port <port>))
+  (display pipeline port))
+
+(define-method (display (pipeline <pipeline>))
+  (next-method)
+  (display pipeline (current-output-port)))
+
+(define-method (write (pipeline <pipeline>))
+  (next-method)
+  (display pipeline (current-output-port)))
+
+(define-method (pipeline-input-port (pipeline <pipeline>))
   (process-input-port (car (pipeline-processes pipeline))))
 
-(define (pipeline-output-port pipeline)
+(define-method (pipeline-output-port (pipeline <pipeline>))
   (process-output-port (last (pipeline-processes pipeline))))
 
 
 
-(define (run-local command)
+(define-method (run-local (command <list>))
   "Run local COMMAND."
   (make-process #f (cadr command)))
 
-(define (run-remote command)
+(define-method (run-remote (command <list>))
   "Run a remote command using Guile-SSH."
   (let ((host (cadr  command))
         (cmd  (caddr command)))
     (make-process host cmd)))
 
-(define (run-guile command)
+(define-method (run-guile (command <list>))
   "Run a GNU Guile command in a local or a remote process."
   (let* ((host (cadr command))
          (proc (make-process host "sh -c guile -q --")))
@@ -99,7 +113,7 @@
     (force-output (process-input-port proc))
     proc))
 
-(define (append-process process-list pipe-list process)
+(define-method (append-process (process-list <list>) (pipe-list <list>) process)
   "Append a new PROCESS to the PROCESS-LIST.  If the PROCESS-LIST is not empty,
 connect the last process from the list with the new PROCESS.
 
@@ -137,7 +151,7 @@ PIPE-LIST."
              (let-values (((process-list pipe-list)
                            (append-process processes pipes (run-guile command))))
                (loop (cdr sp) process-list pipe-list)))))
-        (make-pipeline pipes processes))))
+        (make <pipeline> #:pipes pipes #:processes processes))))
 
 (define-syntax M#!
   (syntax-rules (=>)
