@@ -48,7 +48,7 @@
                #:init-keyword #:host)
   ;; <string>
   (command     #:accessor     process-command
-               #:init-value   #f
+               #:init-value   "/bin/true"
                #:init-keyword #:command)
   ;; <string>
   (fifo-name   #:accessor     process-fifo-name
@@ -62,6 +62,37 @@
 
 (define (process? x)
   (is-a? x <process>))
+
+
+
+(define-method (display (proc <process>) (port <port>))
+  (format port "#<process ~a~a~a ~a ~a>"
+          (if (and (process-input-port proc)
+                   (not (port-closed? (process-input-port proc))))
+              "="
+              "x")
+          (if (process-fifo-name proc)
+              "="
+              "x")
+          (if (and (process-output-port proc)
+                   (not (port-closed? (process-output-port proc))))
+              "="
+              "x")
+
+          (car (string-split (process-command proc) #\space))
+
+          (number->string (object-address pipe) 16)))
+
+(define-method (write (proc <process>) (port <port>))
+  (display proc port))
+
+(define-method (display (proc <process>))
+  (next-method)
+  (display proc (current-output-port)))
+
+(define-method (write (proc <process>))
+  (next-method)
+  (display proc (current-output-port)))
 
 
 
@@ -108,6 +139,7 @@
 (define-method (process-stop! (proc <process>))
   (close (process-input-port proc))
   (close (process-output-port proc))
+  (slot-set! proc 'fifo-name #f)
   (let ((host (process-host proc)))
     (cond
      ((not host)
