@@ -52,7 +52,10 @@
   ;; <port>
   (output-port #:accessor     pipe-output-port
                #:init-value   #f
-               #:init-keyword #:output-port))
+               #:init-keyword #:output-port)
+  ;; <number>
+  (tx          #:accessor     pipe-tx
+               #:init-value   0))
 
 (define (pipe? x)
   "Check if X is a <pipe> instance."
@@ -60,12 +63,13 @@
 
 
 (define-method (display (pipe <pipe>) (port <port>))
-  (format port "#<pipe [~a]=~a=[~a] ~a>"
+  (format port "#<pipe [~a]=~a=[~a] tx: ~a ~a>"
           (if (pipe-thread pipe)
               "="
               "x")
           (pipe-input-port  pipe)
           (pipe-output-port pipe)
+          (pipe-tx pipe)
           (number->string (object-address pipe) 16)))
 
 (define-method (write (pipe <pipe>) (port <port>))
@@ -100,6 +104,7 @@
                           (close input-port)
                           (close output-port))
                         (begin
+                          (slot-set! pipe 'tx (+ (pipe-tx pipe) (bytevector-length data)))
                           (put-bytevector output-port data)
                           (loop (get-bytevector-some input-port))))))))))
 
@@ -127,7 +132,7 @@
                     #:init-keyword #:side-branch-port))
 
 (define-method (display (tee <tee>) (port <port>))
-  (format port "#<tee [~a]=~a=[~a]=~a=[~a] ~a>"
+  (format port "#<tee [~a]=~a=[~a]=~a=[~a] tx: ~a ~a>"
           (pipe-input-port  tee)
           (if (pipe-thread tee)
               "="
@@ -137,6 +142,7 @@
               "="
               "x")
           (pipe-output-port tee)
+          (pipe-tx tee)
           (number->string (object-address tee) 16)))
 
 (define-method (write (tee <tee>) (port <tee>))
@@ -166,6 +172,7 @@
                (begin-thread
                 (let loop ((data (get-bytevector-some input-port)))
                   (unless (eof-object? data)
+                    (slot-set! tee 'tx (+ (pipe-tx tee) (bytevector-length data)))
                     (put-bytevector branch-port data)
                     (put-bytevector output-port data)
                     (loop (get-bytevector-some input-port))))))))
