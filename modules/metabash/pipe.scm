@@ -60,11 +60,7 @@
 
 
 
-(define-generic display)
-(define-generic write)
-
 (define-method (display (pipe <pipe>) (port <port>))
-  (next-method)
   (format port "#<pipe =~a= in: ~a out: ~a ~a>"
           (if (pipe-thread pipe)
               "="
@@ -74,7 +70,6 @@
           (number->string (object-address pipe) 16)))
 
 (define-method (write (pipe <pipe>) (port <port>))
-  (next-method)
   (display pipe port))
 
 (define-method (display (pipe <pipe>))
@@ -133,7 +128,6 @@
                     #:init-keyword #:side-branch-port))
 
 (define-method (display (tee <tee>) (port <port>))
-  (next-method)
   (format port "#<tee =~a= in: ~a out: ~a ~a>"
           (if (pipe-thread tee)
               "="
@@ -143,7 +137,6 @@
           (number->string (object-address tee) 16)))
 
 (define-method (write (tee <tee>) (port <tee>))
-  (next-method)
   (display tee port))
 
 (define-method (display (tee <tee>))
