@@ -66,7 +66,7 @@
 
 
 (define-method (display (proc <process>) (port <port>))
-  (format port "#<process ~a~a~a ~a ~a>"
+  (format port "#<process ~a~a~a ~a~a ~a>"
           (if (and (process-input-port proc)
                    (not (port-closed? (process-input-port proc))))
               "="
@@ -78,6 +78,15 @@
                    (not (port-closed? (process-output-port proc))))
               "="
               "x")
+
+          (let ((host (process-host proc)))
+            (cond
+             ((string? host)
+              (string-append host ": "))
+             ((session? host)
+              (string-append (session-get host 'host) ": "))
+             (else
+              "")))
 
           (car (string-split (process-command proc) #\space))
 
