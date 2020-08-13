@@ -120,8 +120,7 @@
 (define-method (pipe-close! (pipe <pipe>))
   (pipe-disconnect! pipe)
   (close (pipe-input-port pipe))
-  (close (pipe-output-port pipe))
-  (cancel-thread (pipe-thread pipe)))
+  (close (pipe-output-port pipe)))
 
 
 ;;; Tee implementation.
