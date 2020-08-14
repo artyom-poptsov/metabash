@@ -49,19 +49,42 @@
 ;; separate thread.
 (define-class <pipe> ()
   ;; <thread>
+  ;;
+  ;; The pipe thread.
   (thread      #:accessor     pipe-thread
                #:init-value   #f)
+
   ;; <port>
+  ;;
+  ;; The port from which the data will be read.
   (input-port  #:accessor     pipe-input-port
                #:init-value   #f
                #:init-keyword #:input-port)
+
   ;; <port>
+  ;;
+  ;; The port the data will be written to.
   (output-port #:accessor     pipe-output-port
                #:init-value   #f
                #:init-keyword #:output-port)
+
   ;; <number>
+  ;;
+  ;; The total number of transmitted bytes.
   (tx          #:accessor     pipe-tx
                #:init-value   0)
+
+  ;; <procedure>
+  ;;
+  ;; This callback is called with the pipe instance and the data as an argument.
+  ;; The default callback is counts the transmitted data.
+  (on-data-callback       #:accessor     pipe-on-data-callback
+                          #:init-value   (lambda (pipe data)
+                                           (slot-set!
+                                            pipe 'tx
+                                            (+ (pipe-tx pipe)
+                                               (bytevector-length data))))
+                          #:init-keyword #:on-data)
 
   ;; <procedure>
   ;;
@@ -117,10 +140,9 @@
                   (unless (or (port-closed? input-port)
                               (port-closed? output-port))
                     (if (eof-object? data)
-                        (when (pipe-on-disconnect-callback pipe)
-                          ((pipe-on-disconnect-callback pipe) pipe))
+                        ((pipe-on-disconnect-callback pipe) pipe)
                         (begin
-                          (slot-set! pipe 'tx (+ (pipe-tx pipe) (bytevector-length data)))
+                          ((pipe-on-data-callback pipe) pipe data)
                           (put-bytevector output-port data)
                           (loop (get-bytevector-some input-port))))))))))
 
