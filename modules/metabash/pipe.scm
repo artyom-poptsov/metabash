@@ -77,7 +77,7 @@
   ;; <procedure>
   ;;
   ;; This callback is called with the pipe instance and the data as an argument.
-  ;; The default callback is counts the transmitted data.
+  ;; The default callback counts the transmitted data.
   (on-data-callback       #:accessor     pipe-on-data-callback
                           #:init-value   (lambda (pipe data)
                                            (slot-set!
