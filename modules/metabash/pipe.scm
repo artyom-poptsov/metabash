@@ -201,6 +201,24 @@ port."
                     #:init-keyword #:side-branch-port))
 
 
+;;; Default tee callbacks.
+
+(define (%default-tee-on-disconnect-callback! tee)
+  "Default callback to be called when a PIPE is closed."
+  (close (pipe-input-port      tee))
+  (close (pipe-output-port     tee))
+  (close (tee-side-branch-port tee)))
+
+
+;;; The <tee> constructor.
+
+(define-method (initialize (tee <tee>) initargs)
+  (next-method)
+  (unless (memq #:on-disconnect initargs)
+    (slot-set! tee 'on-disconnect-callback
+               %default-tee-on-disconnect-callback!)))
+
+
 ;; Overloaded methods to display a <tee> instance.
 
 ;; TODO: Make the format less cumbersome.
