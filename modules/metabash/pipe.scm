@@ -128,7 +128,8 @@
 ;; Predicate.  Check if a PIPE is connected (that is, the pipe thread is
 ;; running.)
 (define-method (pipe-connected? (pipe <pipe>))
-  (not (equal? (pipe-thread pipe) #f)))
+  (and (not (equal? (pipe-thread pipe) #f))
+       (not (thread-exited? (pipe-thread pipe)))))
 
 
 
