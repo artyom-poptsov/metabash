@@ -34,6 +34,7 @@
             pipe-thread
             pipe-input-port
             pipe-output-port
+            pipe-on-disconnect-callback
             pipe-connect!
             pipe-connected?
             pipe-disconnect!
@@ -60,7 +61,17 @@
                #:init-keyword #:output-port)
   ;; <number>
   (tx          #:accessor     pipe-tx
-               #:init-value   0))
+               #:init-value   0)
+
+  ;; <procedure>
+  ;;
+  ;; This callback is called with the pipe instance as an argument.  The default
+  ;; callback closes both input and output ports.
+  (on-disconnect-callback #:accessor     pipe-on-disconnect-callback
+                          #:init-value   (lambda (pipe)
+                                           (close (pipe-input-port  pipe))
+                                           (close (pipe-output-port pipe)))
+                          #:init-keyword #:on-disconnect))
 
 (define (pipe? x)
   "Check if X is a <pipe> instance."
@@ -107,9 +118,8 @@
                   (unless (or (port-closed? input-port)
                               (port-closed? output-port))
                     (if (eof-object? data)
-                        (begin
-                          (close input-port)
-                          (close output-port))
+                        (when (pipe-on-disconnect-callback pipe)
+                          ((pipe-on-disconnect-callback pipe) pipe))
                         (begin
                           (slot-set! pipe 'tx (+ (pipe-tx pipe) (bytevector-length data)))
                           (put-bytevector output-port data)
