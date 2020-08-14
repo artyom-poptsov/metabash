@@ -44,6 +44,20 @@
             <tee>
             tee-side-branch-port))
 
+
+;;; Default callbacks.
+
+(define (%default-on-data-callback! pipe data)
+  "Default callback to be called with new DATA is available from a PIPE input
+port."
+  (slot-set! pipe 'tx (+ (pipe-tx pipe) (bytevector-length data))))
+
+(define (%default-on-disconnect-callback! pipe)
+  "Default callback to be called when a PIPE is closed."
+  (close (pipe-input-port  pipe))
+  (close (pipe-output-port pipe)))
+
+
 ;; This class describes a pipe (akin to Unix pipe) that can connect two ports
 ;; together by forwarding data from an INPUT-PORT to an OUTPUT-PORT in a
 ;; separate thread.
@@ -79,11 +93,7 @@
   ;; This callback is called with the pipe instance and the data as an argument.
   ;; The default callback counts the transmitted data.
   (on-data-callback       #:accessor     pipe-on-data-callback
-                          #:init-value   (lambda (pipe data)
-                                           (slot-set!
-                                            pipe 'tx
-                                            (+ (pipe-tx pipe)
-                                               (bytevector-length data))))
+                          #:init-value   %default-on-data-callback!
                           #:init-keyword #:on-data)
 
   ;; <procedure>
@@ -91,9 +101,7 @@
   ;; This callback is called with the pipe instance as an argument.  The default
   ;; callback closes both input and output ports.
   (on-disconnect-callback #:accessor     pipe-on-disconnect-callback
-                          #:init-value   (lambda (pipe)
-                                           (close (pipe-input-port  pipe))
-                                           (close (pipe-output-port pipe)))
+                          #:init-value   %default-on-disconnect-callback!
                           #:init-keyword #:on-disconnect))
 (define (pipe? x)
   "Check if X is a <pipe> instance."
