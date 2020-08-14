@@ -35,8 +35,10 @@
             pipe-input-port
             pipe-output-port
             pipe-connect!
+            pipe-connected?
             pipe-disconnect!
             pipe-close!
+            pipe-closed?
             ;; tee
             <tee>
             tee-side-branch-port))
@@ -113,6 +115,11 @@
                           (put-bytevector output-port data)
                           (loop (get-bytevector-some input-port))))))))))
 
+;; Predicate.  Check if a PIPE is connected (that is, the pipe thread is
+;; running.)
+(define-method (pipe-connected? (pipe <pipe>))
+  (not (equal? (pipe-thread pipe) #f)))
+
 
 
 (define-generic pipe-disconnect!)
@@ -133,6 +140,15 @@
   (pipe-disconnect! pipe)
   (close (pipe-input-port pipe))
   (close (pipe-output-port pipe)))
+
+
+(define-generic pipe-closed?)
+
+;; Predicate.  Check if a PIPE is closed.  The PIPE considered as closed if one
+;; of the pipe ports is closed.
+(define-method (pipe-closed? (pipe <pipe>))
+  (or (port-closed? (pipe-input-port pipe))
+      (port-closed? (pipe-output-port pipe))))
 
 
 ;;; Tee implementation.
@@ -202,5 +218,12 @@
   (close (pipe-input-port tee))
   (close (tee-side-branch-port tee))
   (close (pipe-output-port tee)))
+
+;; Check if a TEE is closed.  The tee is considered as closed if any of its
+;; ports is closed.
+(define-method (tee-closed? (tee <tee>))
+  (or (port-closed? (pipe-input-port tee))
+      (port-closed? (pipe-output-port tee))
+      (port-closed? (tee-side-branch-port tee))))
 
 ;;; pipe.scm ends here.
