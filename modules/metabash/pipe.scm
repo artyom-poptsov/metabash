@@ -41,6 +41,9 @@
             <tee>
             tee-side-branch-port))
 
+;; This class describes a pipe (akin to Unix pipe) that can connect two ports
+;; together by forwarding data from an INPUT-PORT to an OUTPUT-PORT in a
+;; separate thread.
 (define-class <pipe> ()
   ;; <thread>
   (thread      #:accessor     pipe-thread
@@ -62,6 +65,8 @@
   (is-a? x <pipe>))
 
 
+;; Overloaded methods to display a <port> instance.
+
 (define-method (display (pipe <pipe>) (port <port>))
   (format port "#<pipe [~a]=~a=[~a] tx: ~a ~a>"
           (pipe-input-port  pipe)
@@ -108,11 +113,18 @@
                           (put-bytevector output-port data)
                           (loop (get-bytevector-some input-port))))))))))
 
+
+
 (define-generic pipe-disconnect!)
+
+;; Disconnect a PIPE by stopping the pipe thread.  Note that the ports will not
+;; be closed.
 (define-method (pipe-disconnect! (pipe <pipe>))
   (cancel-thread (pipe-thread pipe))
   (join-thread (pipe-thread pipe))
   (slot-set! pipe 'thread #f))
+
+
 
 (define-generic pipe-close!)
 
@@ -125,11 +137,17 @@
 
 ;;; Tee implementation.
 
+;; This class describes a tee that can send a data from an INPUT-PORT to both an
+;; OUTPUT-PORT and a SIDE-BRANCH-PORT.
 (define-class <tee> (<pipe>)
   (side-branch-port #:accessor     tee-side-branch-port
                     #:init-value   #f
                     #:init-keyword #:side-branch-port))
 
+
+;; Overloaded methods to display a <tee> instance.
+
+;; TODO: Make the format less cumbersome.
 (define-method (display (tee <tee>) (port <port>))
   (format port "#<tee [~a]=~a=[~a]=~a=[~a] tx: ~a ~a>"
           (pipe-input-port  tee)
@@ -176,7 +194,9 @@
                     (put-bytevector output-port data)
                     (loop (get-bytevector-some input-port))))))))
 
-;; Close a specified TEE."
+
+
+;; Close a specified TEE by stopping the thread and closing the ports.
 (define-method (pipe-close! (tee <tee>))
   (pipe-disconnect! tee)
   (close (pipe-input-port tee))
