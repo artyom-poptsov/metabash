@@ -72,7 +72,6 @@
                                            (close (pipe-input-port  pipe))
                                            (close (pipe-output-port pipe)))
                           #:init-keyword #:on-disconnect))
-
 (define (pipe? x)
   "Check if X is a <pipe> instance."
   (is-a? x <pipe>))
@@ -83,7 +82,7 @@
 (define-method (display (pipe <pipe>) (port <port>))
   (format port "#<pipe [~a]=~a=[~a] tx: ~a ~a>"
           (pipe-input-port  pipe)
-          (if (pipe-thread pipe)
+          (if (pipe-connected? pipe)
               "="
               "x")
           (pipe-output-port pipe)
