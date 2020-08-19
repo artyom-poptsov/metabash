@@ -72,3 +72,32 @@ $ make install
   (while #t
     (sleep 1)))
 #+END_EXAMPLE
+
+The plumbing can be done with =M#!= macro which adds some syntactic sugar upon
+the =plumb= command:
+
+#+BEGIN_EXAMPLE lisp
+(use-modules (oop goops)
+             (ssh session)
+             (ssh auth)
+             (metabash plumber)
+             (metabash pipe))
+
+(define (main args)
+  (define session (make-session #:host "example.org"))
+  (connect! session)
+  (userauth-agent! session)
+  (let ((pipeline (M#! remote session "cat /etc/passwd"
+                       => local "sort"
+                       => local "grep avp")))
+
+    (let ((pipe (make <pipe>
+                  #:input-port    (pipeline-output-port pipeline)
+                  #:output-port   (current-output-port)
+                  #:on-disconnect (lambda (pipe)
+                                    (pipe-close! pipe)
+                                    (disconnect! session)))))
+      (pipe-connect! pipe)
+      (while (pipe-connected? pipe)
+        (sleep 1)))))
+#+END_EXAMPLE

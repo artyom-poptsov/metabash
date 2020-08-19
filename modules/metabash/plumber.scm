@@ -158,15 +158,33 @@ PIPE-LIST."
                (loop (cdr sp) process-list pipe-list)))))
         (make <pipeline> #:pipes pipes #:processes processes))))
 
+
+
+;; Convenient macro that do the plumbing.
 (define-syntax M#!
-  (syntax-rules (=>)
-    ((_ type command)
-     (list (quote type) command))
-    ((_ => type command)
-     `(,(list (quote type) command)))
-    ((_ => type command rest ...)
-     `(,(list (quote type) command) ,@(M#! rest ...)))
-    ((_ type command => rest ...)
-     (apply plumb `(,(list (quote type) command) ,@(M#! => rest ...))))))
+  (lambda (x)
+
+    (define (-> commands)
+      (syntax-case commands (=>)
+        ((type command)
+         #`((list (quote type) command)))
+        ((type command => rest ...)
+         (with-syntax (((r ...) (-> #'(rest ...))))
+           #'((list (quote type) command) r ...)))
+        ((type host command)
+         #`((list (quote type) host command)))
+        ((type host command => rest ...)
+         (with-syntax (((r ...) (-> #'(rest ...))))
+           #'((list (quote type) host command) r ...)))))
+
+    (syntax-case x (=>)
+      ((_ type command)      #'(plumb (list (quote type) command)))
+      ((_ type host command) #'(plumb (list (quote type) host command)))
+      ((_ type command => rest ...)
+       (with-syntax (((wrapper ...) (-> #'(rest ...))))
+         #`(apply plumb (list (list (quote type) host command) wrapper ...))))
+      ((_ type host command => rest ...)
+       (with-syntax (((wrapper ...) (-> #'(rest ...))))
+         #`(apply plumb (list (list (quote type) host command) wrapper ...)))))))
 
 ;;; plumber.scm ends here.
