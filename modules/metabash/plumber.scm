@@ -182,7 +182,7 @@ PIPE-LIST."
       ((_ type host command) #'(plumb (list (quote type) host command)))
       ((_ type command => rest ...)
        (with-syntax (((wrapper ...) (-> #'(rest ...))))
-         #`(apply plumb (list (list (quote type) host command) wrapper ...))))
+         #`(apply plumb (list (list (quote type) command) wrapper ...))))
       ((_ type host command => rest ...)
        (with-syntax (((wrapper ...) (-> #'(rest ...))))
          #`(apply plumb (list (list (quote type) host command) wrapper ...)))))))
