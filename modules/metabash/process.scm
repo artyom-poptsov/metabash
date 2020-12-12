@@ -117,8 +117,6 @@
 (define-method (process-start! (proc <process>))
   (let ((host        (process-host proc))
         (fifo-name   (process-fifo-name proc))
-        (input-port  (process-input-port proc))
-        (output-port (process-output-port proc))
         (command     (process-command proc)))
     (cond
      ((not host)
