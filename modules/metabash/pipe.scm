@@ -45,6 +45,13 @@
             tee-side-branch-port))
 
 
+
+(define (object->naked-string object)
+  "Convert an OBJECT to a 'naked' string, that is, without '#<' and '>'."
+  (let ((str (object->string object)))
+    (substring str 2 (- (string-length str) 1))))
+
+
 ;;; Default callbacks.
 
 (define (%default-on-data-callback! pipe data)
@@ -111,12 +118,12 @@ port."
 ;; Overloaded methods to display a <port> instance.
 
 (define-method (display (pipe <pipe>) (port <port>))
-  (format port "#<pipe [~a]=~a=[~a] tx: ~a ~a>"
-          (pipe-input-port  pipe)
+  (format port "#<pipe [~a] ~a> [~a] tx: ~a ~a>"
+          (object->naked-string (pipe-input-port  pipe))
           (if (pipe-connected? pipe)
               "="
               "x")
-          (pipe-output-port pipe)
+          (object->naked-string (pipe-output-port pipe))
           (pipe-tx pipe)
           (number->string (object-address pipe) 16)))
 
@@ -223,16 +230,13 @@ port."
 
 ;; TODO: Make the format less cumbersome.
 (define-method (display (tee <tee>) (port <port>))
-  (format port "#<tee [~a]=~a=[~a]=~a=[~a] tx: ~a ~a>"
-          (pipe-input-port  tee)
+  (format port "#<tee [~a] ~a> [~a], [~a] tx: ~a ~a>"
+          (object->naked-string (pipe-input-port  tee))
           (if (pipe-thread tee)
               "="
               "x")
-          (tee-side-branch-port tee)
-          (if (pipe-thread tee)
-              "="
-              "x")
-          (pipe-output-port tee)
+          (object->naked-string (tee-side-branch-port tee))
+          (object->naked-string (pipe-output-port tee))
           (pipe-tx tee)
           (number->string (object-address tee) 16)))
 
