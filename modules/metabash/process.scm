@@ -150,7 +150,8 @@
   (let ((host (process-host proc)))
     (cond
      ((not host)
-      (delete-file (process-fifo-name proc)))
+      (when (process-fifo-name proc)
+        (delete-file (process-fifo-name proc))))
      ((session? (process-host proc))
       (with-ssh (make-node host)
                 (delete-file (process-fifo-name proc)))))))
