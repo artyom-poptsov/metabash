@@ -27,10 +27,7 @@
                          => local "sort"
                          => local (format #f "grep '~a'" user))))
 
-      ;; (for-each (lambda (p)
-      ;;             (display p)
-      ;;             (newline))
-      ;;           (pipeline-pipes pipeline))
+      (pipeline-pretty-print pipeline)
 
       (let ((pipe (make <pipe>
                     #:input-port    (pipeline-output-port pipeline)

@@ -40,6 +40,7 @@
             pipeline-processes
             pipeline-output-port
             pipeline-input-port
+            pipeline-pretty-print
             plumb
             M#!))
 
@@ -89,6 +90,25 @@
 
 (define-method (pipeline-output-port (pipeline <pipeline>))
   (process-output-port (last (pipeline-processes pipeline))))
+
+
+(define-generic pipeline-pretty-print)
+
+;; Pretty-print the given PIPELINE to the given PORT.
+(define-method (pipeline-pretty-print (pipeline <pipeline>) (port <port>))
+  (format port ";;; ~a~%" pipeline)
+  (let loop ((processes (pipeline-processes pipeline))
+             (pipes     (pipeline-pipes pipeline)))
+    (format port ";;;   ~a~%" (car processes))
+    (unless (null? pipes)
+      (format port ";;;     ~a~%" (car pipes)))
+    (when (> (length processes) 1)
+      (loop (cdr processes)
+            (if (null? pipes) pipes (cdr pipes))))))
+
+;; Pretty-print the given PIPELINE to the current output port.
+(define-method (pipeline-pretty-print (pipeline <pipeline>))
+  (pipeline-pretty-print pipeline (current-output-port)))
 
 
 
