@@ -52,8 +52,8 @@
          (pipe1     (M> input-port-1 file1))
          (pipe2     (M> input-port-2 file2)))
 
-    (while (and (not (port-closed? input-port-1))
-                (not (port-closed? input-port-2)))
+    (while (or (not (port-closed? input-port-1))
+               (not (port-closed? input-port-2)))
            (sleep 1))
 
     (pipe-close! pipe1)
