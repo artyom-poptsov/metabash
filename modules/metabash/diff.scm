@@ -50,7 +50,7 @@
          (file1     (string-append directory "/input-1"))
          (file2     (string-append directory "/input-2"))
          (pipe1     (M> input-port-1 file1))
-         (pipe2     (M> input-port-1 file2)))
+         (pipe2     (M> input-port-2 file2)))
 
     (while (and (not (port-closed? input-port-1))
                 (not (port-closed? input-port-2)))
