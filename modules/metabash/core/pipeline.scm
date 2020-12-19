@@ -39,7 +39,15 @@
             pipeline-processes
             pipeline-output-port
             pipeline-input-port
-            pipeline-pretty-print))
+            pipeline-pretty-print
+            last))
+
+
+
+(define (last lst)
+  "Get the last element of a list LST."
+  (and (not (null? lst))
+       (car (last-pair lst))))
 
 
 

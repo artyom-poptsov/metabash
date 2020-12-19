@@ -41,11 +41,6 @@
 
 ;;; Helper procedures.
 
-(define (last lst)
-  "Get the last element of a list LST."
-  (and (not (null? lst))
-       (car (last-pair lst))))
-
 (define (append-1 lst elem)
   (append lst (list elem)))
 
