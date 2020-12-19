@@ -1,7 +1,15 @@
 [[./doc/logo.png]]
 
 * Metabash
-GNU Guile module for running distributed shell pipelines.
+*Metabash* (or *M#!* for short) is a GNU Guile module for running distributed
+shell pipelines. "What are distributed shell pipelines?" you may ask. Well, the
+idea is that we can implement some sort of Unix pipeline that is spanned across
+multiple hosts over a network.
+
+Using such pipeline you can run a command on one host and then pass the output
+to a command that is run on another.
+
+Metabash is a research project of mine that was born as a [[https://github.com/artyom-poptsov/guile-ssh][Guile-SSH]] spinoff.
 
 ** License
    Metabash is free software: you can redistribute it and/or modify it under the
