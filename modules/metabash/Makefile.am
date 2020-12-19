@@ -22,7 +22,8 @@ include $(top_srcdir)/am/guilec
 SUBDIRS = core
 
 SOURCES = 				\
-	plumber.scm
+	plumber.scm			\
+	diff.scm
 
 GOBJECTS = $(SOURCES:%.scm=%.go)
 moddir=$(guilesitedir)/metabash

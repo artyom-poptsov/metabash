@@ -31,7 +31,7 @@
   #:use-module (metabash core plumbing pipe)
   #:use-module (metabash core process)
   #:use-module (metabash core pipeline)
-  #:use-module (metabash redirection)
+  #:use-module (metabash core redirection)
   #:export (diff))
 
 (define (mktempdir template)
