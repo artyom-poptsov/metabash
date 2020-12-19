@@ -6,6 +6,7 @@
 
 (use-modules (ssh session)
              (ssh auth)
+             (metabash core pipeline)
              (metabash plumber)
              (metabash diff))
 

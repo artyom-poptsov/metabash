@@ -30,7 +30,7 @@
   #:use-module (ice-9 popen)
   #:use-module (metabash core plumbing pipe)
   #:use-module (metabash core process)
-  #:use-module (metabash plumber)
+  #:use-module (metabash core pipeline)
   #:use-module (metabash redirection)
   #:export (diff))
 

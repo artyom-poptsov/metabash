@@ -27,7 +27,7 @@
   #:use-module (oop goops)
   #:use-module (metabash core plumbing pipe)
   #:use-module (metabash core process)
-  #:use-module (metabash plumber)
+  #:use-module (metabash core pipeline)
   #:export (M> M>>))
 
 ;;; Redirections.

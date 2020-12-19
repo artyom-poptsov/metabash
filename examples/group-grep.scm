@@ -7,8 +7,9 @@
 (use-modules (oop goops)
              (ssh session)
              (ssh auth)
-             (metabash plumber)
-             (metabash core plumbing pipe))
+             (metabash core plumbing pipe)
+             (metabash core pipeline)
+             (metabash plumber))
 
 (define (print-help-and-exit prog)
   (format #t "Usage: ~a <host> <query>~%" prog)

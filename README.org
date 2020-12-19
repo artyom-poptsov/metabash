@@ -67,13 +67,17 @@ $ make install
     Pipeline describes a sequence of running processes connected by pipes. Each
     pipeline has an input port and output port.
 
+    A pipeline is described by =<pipeline>= class from the =(metabash core
+    pipeline)= module.
+
 ** Examples
 #+BEGIN_EXAMPLE lisp
 (use-modules (ssh session)
              (ssh auth)
              (oop goops)
              (metabash core plumbing pipe)
-             (metabash process)
+             (metabash core pipeline)
+             (metabash core process)
              (metabash plumber))
 
 ;; Create a Guile-SSH session:
@@ -122,8 +126,9 @@ the =plumb= command:
 (use-modules (oop goops)
              (ssh session)
              (ssh auth)
-             (metabash plumber)
-             (metabash core plumbing pipe))
+             (metabash core plumbing pipe)
+             (metabash core pipeline)
+             (metabash plumber))
 
 (define (main args)
   (define session (make-session #:host "example.org"))
