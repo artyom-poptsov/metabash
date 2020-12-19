@@ -42,6 +42,7 @@
   (format #f "diff '~a' '~a'" f1 f2))
 
 
+(define-generic diff)
 
 ;; Read and compare an input from an INPUT-PORT-1 with an input from
 ;; INPUT-PORT-2, print differences in Unix diff format to an OUTPUT-PORT.
