@@ -30,6 +30,7 @@
   #:use-module (ice-9 popen)
   #:use-module (metabash pipe)
   #:use-module (metabash process)
+  #:use-module (metabash plumber)
   #:use-module (metabash redirection)
   #:export (diff))
 
@@ -77,5 +78,11 @@
 
         (pipe-close! output-pipe)))))
 
+;; Read and compare an input from a PIPELINE-1 with an input from a PIPELINE-2,
+;; print differences in Unix diff format to an OUTPUT-PORT.
+(define-method (diff (pipeline-1 <pipeline>) (pipeline-2 <pipeline>) (output-port <port>))
+  (diff (pipeline-output-port pipeline-1)
+        (pipeline-output-port pipeline-2)
+        output-port))
 
 ;;; diff.scm ends here.

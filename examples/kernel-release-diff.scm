@@ -32,13 +32,11 @@
     (userauth-agent! session-1)
     (userauth-agent! session-2)
 
-    (let ((pipeline1 (M#! remote session-1 "uname -r"))
-          (pipeline2 (M#! remote session-2 "uname -r")))
+    (let ((pipeline-1 (M#! remote session-1 "uname -r"))
+          (pipeline-2 (M#! remote session-2 "uname -r")))
 
-      (diff (pipeline-output-port pipeline1)
-            (pipeline-output-port pipeline2)
-            (current-output-port))
+      (diff pipeline-1 pipeline-2 (current-output-port))
 
-      (while (or (not (port-closed? (pipeline-output-port pipeline1)))
-                 (not (port-closed? (pipeline-output-port pipeline2))))
+      (while (or (not (port-closed? (pipeline-output-port pipeline-1)))
+                 (not (port-closed? (pipeline-output-port pipeline-2))))
         (sleep 1)))))
