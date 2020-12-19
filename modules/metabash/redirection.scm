@@ -25,7 +25,7 @@
 
 (define-module (metabash redirection)
   #:use-module (oop goops)
-  #:use-module (metabash pipe)
+  #:use-module (metabash core plumbing pipe)
   #:use-module (metabash process)
   #:use-module (metabash plumber)
   #:export (M> M>>))

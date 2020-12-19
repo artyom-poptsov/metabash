@@ -53,7 +53,7 @@ $ make install
     assumption in mind we can talk about "left" and "right" processes in
     relation to a pipe.
 
-    A pipe is described by =<pipe>= class from the =(metabash pipe)= module.
+    A pipe is described by =<pipe>= class from the =(metabash core plumbing pipe)= module.
 
 *** Plumber
     Plumber builds a pipeline upon the processes and pipes that are described
@@ -72,7 +72,7 @@ $ make install
 (use-modules (ssh session)
              (ssh auth)
              (oop goops)
-             (metabash pipe)
+             (metabash core plumbing pipe)
              (metabash process)
              (metabash plumber))
 
@@ -123,7 +123,7 @@ the =plumb= command:
              (ssh session)
              (ssh auth)
              (metabash plumber)
-             (metabash pipe))
+             (metabash core plumbing pipe))
 
 (define (main args)
   (define session (make-session #:host "example.org"))

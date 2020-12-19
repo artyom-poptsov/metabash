@@ -25,7 +25,7 @@
 ;;; Code:
 
 (define-module (metabash plumber)
-  #:use-module (metabash pipe)
+  #:use-module (metabash core plumbing pipe)
   #:use-module (metabash process)
   #:use-module (oop goops)
   #:use-module (ssh dist node)

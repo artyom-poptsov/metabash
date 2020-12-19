@@ -28,7 +28,7 @@
   #:use-module (oop goops)
   #:use-module (ice-9 rdelim)
   #:use-module (ice-9 popen)
-  #:use-module (metabash pipe)
+  #:use-module (metabash core plumbing pipe)
   #:use-module (metabash process)
   #:use-module (metabash plumber)
   #:use-module (metabash redirection)

@@ -56,6 +56,8 @@ AC_SUBST([guilesitedir])
 AC_CONFIG_FILES([Makefile am/Makefile])
 AC_CONFIG_FILES([build-aux/Makefile m4/Makefile])
 AC_CONFIG_FILES([modules/metabash/Makefile])
+AC_CONFIG_FILES([modules/metabash/core/Makefile])
+AC_CONFIG_FILES([modules/metabash/core/plumbing/Makefile])
 AC_CONFIG_FILES([doc/Makefile])
 
 dnl texinfo package required to make the documentation in Texinfo format.

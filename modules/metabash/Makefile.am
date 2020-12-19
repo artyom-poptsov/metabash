@@ -19,8 +19,9 @@
 
 include $(top_srcdir)/am/guilec
 
+SUBDIRS = core
+
 SOURCES = 				\
-	pipe.scm				\
 	plumber.scm			\
 	process.scm			\
 	redirection.scm

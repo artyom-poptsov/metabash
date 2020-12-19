@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-(define-module (metabash pipe)
+(define-module (metabash core plumbing pipe)
   #:use-module (oop goops)
   #:use-module (ice-9 threads)
   #:use-module (ice-9 binary-ports)

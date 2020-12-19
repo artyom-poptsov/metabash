@@ -8,7 +8,7 @@
              (ssh session)
              (ssh auth)
              (metabash plumber)
-             (metabash pipe))
+             (metabash core plumbing pipe))
 
 (define (print-help-and-exit prog)
   (format #t "Usage: ~a <host> <query>~%" prog)
