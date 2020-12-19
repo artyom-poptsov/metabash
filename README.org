@@ -1,10 +1,11 @@
 [[./doc/logo.png]]
 
 * Metabash
-*Metabash* (or *M#!* for short) is a GNU Guile module for running distributed
-shell pipelines. "What are distributed shell pipelines?" you may ask. Well, the
-idea is that we can implement some sort of Unix pipeline that is spanned across
-multiple hosts over a network.
+*Metabash* (or *M#!* for short) is a GNU Guile module that provides domain
+specific language (DSL) for running distributed shell pipelines. "What are
+distributed shell pipelines?" you may ask. Well, the idea is that we can
+implement some sort of Unix pipeline that is spanned across multiple hosts over
+a network.
 
 Using such pipeline you can run a command on one host and then pass the output
 to a command that is run on another.
@@ -33,7 +34,40 @@ $ ./configure
 $ make install
 #+END_EXAMPLE
 
-** Example
+** Main concepts
+
+*** Process
+    Running local or remote process. Each process runs a specified command and
+    has an input and an output port.
+
+    A process is described by =<process>= class from the =(metabash process)=
+    module.
+
+*** Pipe
+    Pipe connects two running processes by means of connecting output port
+    (=stdout=) of the first process with the input port (=stdin=) of the second.
+
+    For the clarity sake we will assume that the process that produces the data
+    is always placed on the "left" side of the pipe and all the processes that
+    read the data is always placed on the "right" side of the pipe. With that
+    assumption in mind we can talk about "left" and "right" processes in
+    relation to a pipe.
+
+    A pipe is described by =<pipe>= class from the =(metabash pipe)= module.
+
+*** Plumber
+    Plumber builds a pipeline upon the processes and pipes that are described
+    above. It implemented as =plumb= command and =M#!= macro.
+
+    When a plumber is called it spawns a process for each specified command and
+    connects the spawned processes with pipes. The output of the plumber is a
+    pipeline.
+
+*** Pipeline
+    Pipeline describes a sequence of running processes connected by pipes. Each
+    pipeline has an input port and output port.
+
+** Examples
 #+BEGIN_EXAMPLE lisp
 (use-modules (ssh session)
              (ssh auth)
