@@ -23,7 +23,7 @@
 
 ;;; Code:
 
-(define-module (metabash redirection)
+(define-module (metabash core redirection)
   #:use-module (oop goops)
   #:use-module (metabash core plumbing pipe)
   #:use-module (metabash core process)

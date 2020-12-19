@@ -23,7 +23,8 @@ SUBDIRS = plumbing
 
 SOURCES = 				\
 	process.scm			\
-	pipeline.scm
+	pipeline.scm		\
+	redirection.scm
 
 GOBJECTS = $(SOURCES:%.scm=%.go)
 moddir=$(guilesitedir)/metabash/core/
