@@ -26,7 +26,7 @@
 
 (define-module (metabash plumber)
   #:use-module (metabash core plumbing pipe)
-  #:use-module (metabash process)
+  #:use-module (metabash core process)
   #:use-module (oop goops)
   #:use-module (ssh dist node)
   #:use-module (srfi srfi-9 gnu)

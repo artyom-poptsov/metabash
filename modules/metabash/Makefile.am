@@ -23,7 +23,6 @@ SUBDIRS = core
 
 SOURCES = 				\
 	plumber.scm			\
-	process.scm			\
 	redirection.scm
 
 GOBJECTS = $(SOURCES:%.scm=%.go)

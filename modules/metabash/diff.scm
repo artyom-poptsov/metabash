@@ -29,7 +29,7 @@
   #:use-module (ice-9 rdelim)
   #:use-module (ice-9 popen)
   #:use-module (metabash core plumbing pipe)
-  #:use-module (metabash process)
+  #:use-module (metabash core process)
   #:use-module (metabash plumber)
   #:use-module (metabash redirection)
   #:export (diff))

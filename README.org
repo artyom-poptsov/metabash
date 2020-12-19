@@ -40,7 +40,7 @@ $ make install
     Running local or remote process. Each process runs a specified command and
     has an input and an output port.
 
-    A process is described by =<process>= class from the =(metabash process)=
+    A process is described by =<process>= class from the =(metabash core process)=
     module.
 
 *** Pipe

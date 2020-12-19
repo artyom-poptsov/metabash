@@ -23,7 +23,7 @@
 
 ;;; Code:
 
-(define-module (metabash process)
+(define-module (metabash core process)
   #:use-module (oop goops)
   #:use-module (ice-9 popen)
   #:use-module (ice-9 rdelim)
