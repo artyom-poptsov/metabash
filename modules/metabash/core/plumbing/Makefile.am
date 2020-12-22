@@ -20,7 +20,8 @@
 include $(top_srcdir)/am/guilec
 
 SOURCES = 				\
-	pipe.scm
+	pipe.scm				\
+	tee.scm
 
 GOBJECTS = $(SOURCES:%.scm=%.go)
 moddir=$(guilesitedir)/metabash/core/plumbing/
