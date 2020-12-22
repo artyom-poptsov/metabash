@@ -66,9 +66,7 @@
   (let ((input-port  (pipe-input-port tee))
         (output-port (pipe-output-port tee))
         (branch-port (tee-side-branch-port tee)))
-    (when (or (port-closed? input-port)
-              (port-closed? output-port)
-              (port-closed? branch-port))
+    (when (pipe-closed? tee)
       (error "One of the ports is closed."
              input-port output-port branch-port))
     (slot-set! tee 'thread
