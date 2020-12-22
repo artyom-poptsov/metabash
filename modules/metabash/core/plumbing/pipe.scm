@@ -146,8 +146,7 @@ port."
 (define-method (pipe-connect! (pipe <pipe>))
   (let ((input-port  (pipe-input-port  pipe))
         (output-port (pipe-output-port pipe)))
-    (when (or (port-closed? input-port)
-              (port-closed? output-port))
+    (when (pipe-closed? pipe)
       (error "One of the ports is closed." input-port output-port))
     (slot-set! pipe 'thread
                (begin-thread
