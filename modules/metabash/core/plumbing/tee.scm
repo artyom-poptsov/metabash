@@ -91,7 +91,7 @@
 
 ;; Check if a TEE is closed.  The tee is considered as closed if any of its
 ;; ports is closed.
-(define-method (tee-closed? (tee <tee>))
+(define-method (pipe-closed? (tee <tee>))
   (or (port-closed? (pipe-input-port tee))
       (port-closed? (pipe-output-port tee))
       (port-closed? (tee-side-branch-port tee))))
