@@ -34,14 +34,25 @@
             process?
             process-input-port
             process-output-port
+            process-state
             process-host
             process-command
             process-fifo-name
             process-start!
+            process-started?
             process-stop!
+            process-stopped?
             make-remote-fifo))
 
 (define-class <process> ()
+  ;; <symbol>
+  ;;
+  ;; Process state.  Available states:
+  ;;     stopped, started
+  (state       #:accessor     process-state
+               #:setter       process-state-set!
+               #:init-value   'stopped)
+
   ;; <session> | #f
   (host        #:accessor     process-host
                #:init-value   #f
@@ -65,19 +76,27 @@
 
 
 
+(define-method (process-stopped? (proc <process>))
+  (equal? (process-state proc) 'stopped))
+
+(define-method (process-started? (proc <process>))
+  (equal? (process-state proc) 'started))
+
+
+
 (define-method (display (proc <process>) (port <port>))
   (format port "#<process ~a~a~a ~a~a ~a>"
-          (if (and (process-input-port proc)
-                   (not (port-closed? (process-input-port proc))))
+          (if (or (process-stopped? proc)
+                  (port-closed? (process-input-port proc)))
+              "x"
+              "=")
+          (if (process-started? proc)
               "="
               "x")
-          (if (process-fifo-name proc)
-              "="
-              "x")
-          (if (and (process-output-port proc)
-                   (not (port-closed? (process-output-port proc))))
-              "="
-              "x")
+          (if (or (process-stopped? proc)
+                  (port-closed? (process-output-port proc)))
+              "x"
+              "=")
 
           (let ((host (process-host proc)))
             (cond
@@ -115,6 +134,8 @@
 
 
 (define-method (process-start! (proc <process>))
+  (when (process-started? proc)
+    (error "The process is already started" proc))
   (let ((host        (process-host proc))
         (fifo-name   (process-fifo-name proc))
         (command     (process-command proc)))
@@ -141,9 +162,12 @@
         (slot-set! proc 'output-port output-port)
         (slot-set! proc 'fifo-name   fifo-name)))
      (else
-      (error "Wrong argument type: " host)))))
+      (error "Wrong argument type: " host))))
+  (process-state-set! proc 'started))
 
 (define-method (process-stop! (proc <process>))
+  (when (process-stopped? proc)
+    (error "The process is already stopped" proc))
   (close (process-input-port proc))
   (close (process-output-port proc))
   (slot-set! proc 'fifo-name #f)
@@ -154,6 +178,7 @@
         (delete-file (process-fifo-name proc))))
      ((session? (process-host proc))
       (with-ssh (make-node host)
-                (delete-file (process-fifo-name proc)))))))
+                (delete-file (process-fifo-name proc))))))
+  (process-state-set! proc 'stopped))
 
 ;;; process.scm ends here.
